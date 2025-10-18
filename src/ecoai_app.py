@@ -26,7 +26,7 @@ def load_data():
     df = df.groupby(['dt', 'Country'])['AverageTemperature'].mean().reset_index()
     df = df.dropna(subset=['AverageTemperature'])
     # Keep only data after 1950
-    df = df[df['dt'].dt.year >= 1950]
+    df = df[df['dt'].dt.year >= 2000]
     return df
 
 df = load_data()
