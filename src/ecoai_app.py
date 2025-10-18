@@ -48,7 +48,7 @@ show_raw = st.sidebar.checkbox("Show Raw Data", False)
 st.sidebar.markdown("### 📆 Select Year Range")
 min_year = int(df['dt'].dt.year.min())
 max_year = int(df['dt'].dt.year.max())
-year_range = st.sidebar.slider("Year Range", min_year, max_year, (1950, max_year))
+year_range = st.sidebar.slider("Year Range", min_year, max_year, (2000, max_year))
 
 st.sidebar.markdown("---")
 st.sidebar.info("📊 Tip: Use the sidebar to explore different countries and forecast durations.")
