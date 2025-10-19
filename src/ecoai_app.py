@@ -8,11 +8,13 @@ from sklearn.preprocessing import MinMaxScaler
 import gc
 
 # -----------------------------------
-# ⚙️ TensorFlow runtime tuning
+# ⚙️ TensorFlow runtime tuning (safe mode)
 # -----------------------------------
-# Limit CPU threads to prevent overuse on Streamlit Cloud
-tf.config.threading.set_intra_op_parallelism_threads(1)
-tf.config.threading.set_inter_op_parallelism_threads(1)
+try:
+    tf.config.threading.set_intra_op_parallelism_threads(1)
+    tf.config.threading.set_inter_op_parallelism_threads(1)
+except Exception:
+    pass  # Streamlit Cloud restricts thread configuration, safe to ignore
 
 # -----------------------------------
 # 🎨 Page Configuration
@@ -23,6 +25,7 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded"
 )
+
 
 # -----------------------------------
 # 📂 Load Data (cached)
