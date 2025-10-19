@@ -7,18 +7,16 @@ import numpy as np
 from sklearn.preprocessing import MinMaxScaler
 import gc
 
-# -----------------------------------
-# ⚙️ TensorFlow runtime tuning (safe mode)
-# -----------------------------------
+
+# TensorFlow runtime tuning (safe mode)
 try:
     tf.config.threading.set_intra_op_parallelism_threads(1)
     tf.config.threading.set_inter_op_parallelism_threads(1)
 except Exception:
     pass  # Streamlit Cloud restricts thread configuration, safe to ignore
 
-# -----------------------------------
-# 🎨 Page Configuration
-# -----------------------------------
+
+# Page Configuration
 st.set_page_config(
     page_title="EcoAI - Climate Predictor 🌍",
     page_icon="🌡️",
@@ -27,9 +25,8 @@ st.set_page_config(
 )
 
 
-# -----------------------------------
-# 📂 Load Data (cached)
-# -----------------------------------
+
+# Load Data (cached)
 @st.cache_data(ttl=86400)  # cache for 1 day
 def load_data():
     df = pd.read_csv("data/GlobalLandTemperaturesByState.csv")
@@ -41,9 +38,8 @@ def load_data():
 
 df = load_data()
 
-# -----------------------------------
-# 🧭 Sidebar
-# -----------------------------------
+
+# Sidebar
 st.sidebar.title("🌍 EcoAI Climate Dashboard")
 st.sidebar.write("Explore and forecast temperature trends across countries.")
 
@@ -64,9 +60,8 @@ year_range = st.sidebar.slider("Year Range", min_year, max_year, (1950, max_year
 st.sidebar.markdown("---")
 st.sidebar.info("⚡ Optimized for Streamlit Cloud performance.")
 
-# -----------------------------------
-# 🌡️ Filter & Clean Data
-# -----------------------------------
+
+# Filter & Clean Data
 df_country = df[df['Country'] == country_filter].copy()
 df_country = df_country[
     (df_country['dt'].dt.year >= year_range[0]) &
@@ -80,9 +75,8 @@ if df_country.empty:
 df_country['AverageTemperature'] = df_country['AverageTemperature'].interpolate('linear')
 df_country['SmoothedTemp'] = df_country['AverageTemperature'].rolling(window=3, min_periods=1).mean()
 
-# -----------------------------------
-# 📈 Visualization: Historical Trends
-# -----------------------------------
+
+# Visualization: Historical Trends
 st.title("🌡️ EcoAI Climate Forecast Dashboard")
 st.markdown(f"### Historical Temperature Trends in **{country_filter}**")
 
@@ -97,9 +91,8 @@ st.plotly_chart(fig, use_container_width=True)
 if show_raw:
     st.dataframe(df_country.tail(10))
 
-# -----------------------------------
-# 🤖 Cached LSTM Model
-# -----------------------------------
+
+# Cached LSTM Model
 @st.cache_resource
 def train_model(series):
     """Trains a lightweight LSTM model once and reuses it for all reruns."""
@@ -130,9 +123,7 @@ df_monthly['Month'] = df_monthly['Month'].dt.to_timestamp()
 # Train (cached)
 model, scaler = train_model(df_monthly['SmoothedTemp'])
 
-# -----------------------------------
-# 🔮 AI Forecast
-# -----------------------------------
+# AI Forecast
 scaled = scaler.transform(np.array(df_monthly['SmoothedTemp']).reshape(-1, 1))
 look_back = 12
 last_seq = scaled[-look_back:]
@@ -148,9 +139,7 @@ future_dates = pd.date_range(df_monthly['Month'].iloc[-1] + pd.offsets.MonthBegi
                              periods=future_months, freq='MS')
 df_future = pd.DataFrame({'Month': future_dates, 'PredictedTemperature': future_preds.flatten()})
 
-# -----------------------------------
-# 🌤️ Plot Forecast
-# -----------------------------------
+# Plot Forecast
 fig2 = go.Figure()
 fig2.add_trace(go.Scatter(
     x=df_monthly['Month'], y=df_monthly['SmoothedTemp'],
@@ -174,9 +163,8 @@ fig2.update_layout(
 )
 st.plotly_chart(fig2, use_container_width=True)
 
-# -----------------------------------
-# 🧾 Summary
-# -----------------------------------
+# Summary
+
 latest_temp = round(df_monthly['SmoothedTemp'].iloc[-1], 2)
 forecast_end = round(df_future['PredictedTemperature'].iloc[-1], 2)
 temp_change = forecast_end - latest_temp
@@ -192,9 +180,7 @@ st.success(
     f"may change by **{temp_change:+.2f}°C** over the next **{future_months} months**."
 )
 
-# -----------------------------------
-# ⚠️ Disclaimer
-# -----------------------------------
+# Disclaimer
 st.warning("""
 ⚠️ **Disclaimer:**  
 The forecast shown here is a **mathematical estimation** based on historical patterns.  
